@@ -1,38 +1,66 @@
 import React from "react";
-import {useState} from 'react';
+import { useState } from "react";
+import { FaTrashAlt } from "react-icons/fa";
 const Content = () => {
+  const [items, setItems] = useState([
+    {
+      id: 1,
+      checked: false,
+      item: "One half pound bag of coca covered almonds unsalted",
+    },
+    {
+      id: 2,
+      checked: false,
+      item: "Item 2",
+    },
+    {
+      id: 3,
+      checked: false,
+      item: "Item 3",
+    },
+  ]); //getter and setter = default
 
-  const [name,setName] = useState('noah')//getter and setter = default
-  const [count,setCount] = useState(0)
-  const handleNameChange = () => {
-    const names = ["noah", "boa", "hoa"];
-    const int = Math.floor(Math.random() * 3);
-    return setName(names[int]);
-  };
+  const handleCheck = (id) =>{
+    const listItems = items.map((item)=>{
+      if(item.id===id){
+        return({...item,checked:!item.checked})
+      }
+      else{
+        return item
+      }
+    })
+    setItems(listItems)
+    localStorage.setItem('shoppinglist',JSON.stringify(listItems));
+    // console.log(items.filter((item) => item.id===id)) // items list is filtered to log item selected by the item id
+    // const selectedItem = items.filter(item => items.id===id)
 
-  const handleClick = () => {
-    console.log(count);
-  };
+  }
 
-  const handleClick2 = (name) => {
-    console.log(`${name} "Clicked!`);
-  };
-
-  const handleClick3 = (e) => {
-    // console.log(e.target.childNodes[0].data);
-    console.log(e.target.innerText);
-
-  };
+  const handleDelete = (id) =>{
+    const listItems = items.filter((item)=>item.id!==id)
+    localStorage.setItem('shoppinglist',JSON.stringify(listItems))
+    setItems(JSON.parse(localStorage.getItem('shoppinglist')))
+    // console.log(listItems)
+  }
 
   return (
     <main>
-      <p>Hello {name}</p>
-      <button onClick={handleNameChange}>Name Change</button>
-      <button onClick={handleClick}> Change Name</button>
-      
-      {/* Event object is passed and output by handleClick3 */}
-      <button onClick={(e)=>handleClick3(e)}> Click this</button>
-
+      {items.length?(
+        <ul>
+          {items.map((item) => (
+            <li className="item" key={item.id}>
+              <input type="checkbox" checked={item.checked} onChange={()=>handleCheck(item.id)}/>
+              <label
+                style={(item.checked)?{textDecoration:'line-through'}:null}
+                onDoubleClick={()=>handleCheck(item.id)}
+              >{item.item}</label>
+              <FaTrashAlt onClick={()=>handleDelete(item.id)} role="button" tabIndex="0" />
+            </li>
+          ))}
+        </ul>
+      ):(
+        <p style={{marginTop:'2rem'}}> Your List Is Empty </p>
+      )}
     </main>
   );
 };
