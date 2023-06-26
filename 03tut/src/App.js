@@ -1,26 +1,33 @@
 import Header from "./Header";
 import Content from "./Content";
 import Footer from "./Footer";
-
+import AddItem from "./AddItem";
+import SearchItem from "./SearchItem";
 import { useState } from "react";
+
 function App() {
-  const [items, setItems] = useState([
-    {
-      id: 1,
+  const [items, setItems] = useState(
+    JSON.parse(localStorage.getItem("shoppinglist"))
+  ); //getter and setter = default
+
+  const [newItem, setNewItem] = useState("");
+  const [search, setSearch] = useState("");
+
+  const setAndSaveItems = (newItems) => {
+    setItems(newItems);
+    localStorage.setItem("shoppinglist", JSON.stringify(newItems));
+  };
+
+  const addItem = (item) => {
+    const id = items.length ? items[items.length - 1].id + 1 : 1; // if the items array has a length, get the id of the last element of the array and increment by one. Otherwise, set the id to 1
+    const myNewItem = {
+      id,
       checked: false,
-      item: "One half pound bag of coca covered almonds unsalted",
-    },
-    {
-      id: 2,
-      checked: false,
-      item: "Item 2",
-    },
-    {
-      id: 3,
-      checked: false,
-      item: "Item 3",
-    },
-  ]); //getter and setter = default
+      item,
+    };
+    const listItems = [...items, myNewItem]; // note -- a list, not an object
+    setAndSaveItems(listItems);
+  };
 
   const handleCheck = (id) => {
     const listItems = items.map((item) => {
@@ -30,28 +37,43 @@ function App() {
         return item;
       }
     });
-    setItems(listItems);
-    localStorage.setItem("shoppinglist", JSON.stringify(listItems));
+    setAndSaveItems(listItems);
     // console.log(items.filter((item) => item.id===id)) // items list is filtered to log item selected by the item id
     // const selectedItem = items.filter(item => items.id===id)
   };
 
   const handleDelete = (id) => {
     const listItems = items.filter((item) => item.id !== id);
-    localStorage.setItem("shoppinglist", JSON.stringify(listItems));
-    setItems(JSON.parse(localStorage.getItem("shoppinglist")));
+    setAndSaveItems(listItems);
     // console.log(listItems)
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault(); // prevents page reload upon submit
+    if (!newItem) return; // if the submission is blank, don't do anything
+    addItem(newItem);
+    setNewItem("");
+    console.log("submitted", newItem);
   };
 
   return (
     <div className="App">
       <Header title="Groceries List"></Header>
+      <SearchItem
+        search={search}
+        setSearch={setSearch}
+      />
+      <AddItem
+        newItem={newItem}
+        setNewItem={setNewItem}
+        handleSubmit={handleSubmit}
+      />
       <Content
-        items={items}
+        items={items.filter(item=>((item.item).toLowerCase().includes(search.toLowerCase())))}
         handleCheck={handleCheck}
         handleDelete={handleDelete}
       />
-      <Footer length={items.length}/>
+      <Footer length={items.length} />
     </div>
   );
 }
