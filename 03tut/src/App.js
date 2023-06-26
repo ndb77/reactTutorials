@@ -3,20 +3,19 @@ import Content from "./Content";
 import Footer from "./Footer";
 import AddItem from "./AddItem";
 import SearchItem from "./SearchItem";
-import { useState } from "react";
+import { useState,useEffect } from "react";
 
 function App() {
   const [items, setItems] = useState(
-    JSON.parse(localStorage.getItem("shoppinglist"))
+    JSON.parse(localStorage.getItem("shoppinglist")) || []
   ); //getter and setter = default
 
   const [newItem, setNewItem] = useState("");
   const [search, setSearch] = useState("");
 
-  const setAndSaveItems = (newItems) => {
-    setItems(newItems);
-    localStorage.setItem("shoppinglist", JSON.stringify(newItems));
-  };
+  useEffect(()=>{
+    localStorage.setItem("shoppinglist", JSON.stringify(items)); // saving the current state of items
+  },[items]) // runs on every render(last in line) or when the dependency list changes. [] = at load time only
 
   const addItem = (item) => {
     const id = items.length ? items[items.length - 1].id + 1 : 1; // if the items array has a length, get the id of the last element of the array and increment by one. Otherwise, set the id to 1
@@ -26,7 +25,7 @@ function App() {
       item,
     };
     const listItems = [...items, myNewItem]; // note -- a list, not an object
-    setAndSaveItems(listItems);
+    setItems(listItems);
   };
 
   const handleCheck = (id) => {
@@ -37,14 +36,14 @@ function App() {
         return item;
       }
     });
-    setAndSaveItems(listItems);
+    setItems(listItems);
     // console.log(items.filter((item) => item.id===id)) // items list is filtered to log item selected by the item id
     // const selectedItem = items.filter(item => items.id===id)
   };
 
   const handleDelete = (id) => {
     const listItems = items.filter((item) => item.id !== id);
-    setAndSaveItems(listItems);
+    setItems(listItems);
     // console.log(listItems)
   };
 
