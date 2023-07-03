@@ -1,22 +1,24 @@
 import React from "react";
-import { useEffect, useContext, useState } from "react";
+import { useEffect } from "react";
 import { format } from "date-fns";
 import { useParams, Link, useHistory } from "react-router-dom";
-import api from './api/posts'
-import DataContext from "./context/DataContext";
+import {useStoreState, useStoreActions} from 'easy-peasy'
 
 const EditPost = () => {
-  const { posts, setPosts } = useContext(DataContext);
 
   const { id } = useParams();
 
-  const [editPostTitle, setEditPostTitle] = useState("");
-  const [editPostBody, setEditPostBody] = useState("");
+  const editPostTitle = useStoreState((state)=>state.editPostTitle)
+  const editPostBody = useStoreState((state)=>state.editPostBody)
+
+  const editPost = useStoreActions((actions)=> actions.editPost)
+  const setEditPostTitle = useStoreActions((actions)=> actions.setEditPostTitle)
+  const setEditPostBody = useStoreActions((actions)=> actions.setEditPostBody)
 
   const history = useHistory();
   // go through the list of posts and find the post that matches the id requested
-  const post = posts.find((post) => post.id.toString() === id);
-
+  const getPostById = useStoreState((state)=>state.getPostById)
+  const post =  getPostById(id)
   // when the user wants to edit the post, the form will already be filled out using previously stored data from the posts array
   useEffect(() => {
     if (post) {
@@ -25,7 +27,7 @@ const EditPost = () => {
     }
   }, [post, setEditPostTitle, setEditPostBody]);
 
-  const handleEdit = async (id) => {
+  const handleEdit = (id) => {
     const datetime = format(new Date(), "MMMM dd, yyyy pp");
     const updatedPost = {
       id,
@@ -33,20 +35,8 @@ const EditPost = () => {
       datetime,
       body: editPostBody,
     };
-
-    try {
-      const response = await api.put(`/posts/${id}`, updatedPost);
-      // map creates a new array
-      // finds the post by id within the posts array state and passes in the new data to the state
-      setPosts(
-        posts.map((post) => (post.id === id ? { ...response.data } : post))
-      );
-      setEditPostTitle("");
-      setEditPostBody("");
-      history.push("/");
-    } catch (err) {
-      console.log(`Error: ${err.message}`);
-    }
+    editPost(updatedPost)
+    history.push(`/post/${id}`)
   };
 
   return (
@@ -70,7 +60,7 @@ const EditPost = () => {
               value={editPostBody}
               onChange={(e) => setEditPostBody(e.target.value)}
             />
-            <button type="submit" onClick={() => handleEdit(post.id)}>
+            <button type="button" onClick={() => handleEdit(post.id)}>
               Submit
             </button>
           </form>

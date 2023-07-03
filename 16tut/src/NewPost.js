@@ -1,39 +1,28 @@
 import React from "react";
-
-import { useContext, useState } from "react";
-import {useHistory} from 'react-router-dom'
 import { format } from "date-fns";
-
-import DataContext from "./context/DataContext";
-import api from './api/posts'
+import { useHistory } from "react-router-dom";
+import {useStoreState, useStoreActions} from 'easy-peasy'
 
 const NewPost = () => {
-  const [postTitle, setPostTitle] = useState("");
-  const [postBody, setPostBody] = useState("");
-  
-  const {posts,setPosts } = useContext(DataContext)
+
+  const posts = useStoreState((state)=>state.posts)
+  const postTitle = useStoreState((state)=>state.postTitle)
+  const postBody = useStoreState((state)=>state.postBody)
+
+  const savePost = useStoreActions((actions)=> actions.savePost)
+  const setPostTitle = useStoreActions((actions)=> actions.setPostTitle)
+  const setPostBody = useStoreActions((actions)=> actions.setPostBody)
 
   const history = useHistory()
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     // get the id of the post -- if there is a length, get the id of the last post, if there are no posts, id =1
     const id = posts.length ? posts[posts.length - 1].id + 1 : 1;
     const datetime = format(new Date(), "MMMM dd, yyyy pp");
     const newPost = { id, title: postTitle, datetime, body: postBody };
-    // const allPosts = [...posts, newPost];
-
-    try {
-      const response = await api.post("/posts", newPost);
-      const allPosts = [...posts, response.data];
-      setPosts(allPosts);
-      setPostTitle("");
-      setPostBody("");
-      history.push("/");
-    } catch (err) {
-      console.log(`Error: ${err.message}`);
-    }
+    savePost(newPost)
+    history.push('/')
   };
 
   return (
