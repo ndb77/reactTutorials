@@ -1,17 +1,19 @@
 import React from "react";
-import { useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useEffect, useContext, useState } from "react";
+import { format } from "date-fns";
+import { useParams, Link, useHistory } from "react-router-dom";
+import api from './api/posts'
+import DataContext from "./context/DataContext";
 
-const EditPost = ({
-  posts,
-  handleEdit,
-  editPostBody,
-  setEditPostBody,
-  editPostTitle,
-  setEditPostTitle,
-}) => {
+const EditPost = () => {
+  const { posts, setPosts } = useContext(DataContext);
+
   const { id } = useParams();
 
+  const [editPostTitle, setEditPostTitle] = useState("");
+  const [editPostBody, setEditPostBody] = useState("");
+
+  const history = useHistory();
   // go through the list of posts and find the post that matches the id requested
   const post = posts.find((post) => post.id.toString() === id);
 
@@ -22,6 +24,31 @@ const EditPost = ({
       setEditPostBody(post.body);
     }
   }, [post, setEditPostTitle, setEditPostBody]);
+
+  const handleEdit = async (id) => {
+    const datetime = format(new Date(), "MMMM dd, yyyy pp");
+    const updatedPost = {
+      id,
+      title: editPostTitle,
+      datetime,
+      body: editPostBody,
+    };
+
+    try {
+      const response = await api.put(`/posts/${id}`, updatedPost);
+      // map creates a new array
+      // finds the post by id within the posts array state and passes in the new data to the state
+      setPosts(
+        posts.map((post) => (post.id === id ? { ...response.data } : post))
+      );
+      setEditPostTitle("");
+      setEditPostBody("");
+      history.push("/");
+    } catch (err) {
+      console.log(`Error: ${err.message}`);
+    }
+  };
+
   return (
     <main className="NewPost">
       {editPostTitle && (
